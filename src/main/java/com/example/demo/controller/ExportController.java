@@ -2,6 +2,11 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Client;
 import com.example.demo.service.ClientService;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +18,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -31,15 +37,12 @@ public class ExportController {
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=\"clients.csv\""); // là je lui dis qu'il va faire un fichier à télécharger et qu'il s'appelle clients.csv
         PrintWriter writer = response.getWriter(); // je récupère le writter de la réponse Http
-        // TODO
-
         writer.println("Matricule;Prénom; Nom; Date de naissance; Âge");
         List<Client> clients = clientService.findAllClients();
         ListIterator<Client> it = clients.listIterator();
         LocalDate now = LocalDate.now();
         while (it.hasNext()){
             Client cl = it.next();
-
         writer.println(cl.getId() + ";"
                 + cl.getPrenom() + ";"
                 + cl.getNom() + ";"
@@ -47,7 +50,51 @@ public class ExportController {
                 + (now.getYear()-cl.getDatenaissance().getYear()));
         }
         // writer.println("Case00;Case01"); // écrit dans le fichier excel, les cases sont séparées par un ";"
-       // writer.println("Case10;Case11");
+    }
+
+    @GetMapping("/clients/xlsx")
+    public void clientsXlsx(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("text/vnd.ms-excel");
+        response.setHeader("Content-Disposition", "attachment; filename=\"clients.xlsx\""); // là je lui dis qu'il va faire un fichier à télécharger et qu'il s'appelle clients.xlsx
+        LocalDate now = LocalDate.now();
+        List<Client> clients = clientService.findAllClients();
+
+
+
+        Workbook workbook = new XSSFWorkbook(); // crée un fichier excel
+        Sheet sheet = workbook.createSheet("Clients"); // crée un onglet
+        Row headerRow = sheet.createRow(0); // crée une ligne
+        ArrayList<String> celTitres = new ArrayList<String>() ;
+        celTitres.add("Matricule");
+        celTitres.add("Prénom");
+        celTitres.add("Nom");
+        celTitres.add("Date de Naissance");
+        celTitres.add("Age");
+
+        int i =0;
+        for(String title : celTitres){
+            headerRow.createCell(i).setCellValue(title);
+            i++;
+        }
+        //Cell cellPrenom = headerRow.createCell(0); // crée une cellule
+        //cellPrenom.setCellValue("Matricule;Prénom;Nom;Date de Naissance"); // ajoute une valeur dans la cellule
+
+        int rowNum = 1;
+        for(Client client : clients){
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(client.getId());
+            row.createCell(1).setCellValue(client.getPrenom());
+            row.createCell(2).setCellValue(client.getNom());
+            row.createCell(3).setCellValue(client.getDatenaissance().format(DateTimeFormatter.ofPattern("dd/MM/YYYY")));
+            row.createCell(4).setCellValue((now.getYear()-client.getDatenaissance().getYear()));
+        }
+
+
+        workbook.write(response.getOutputStream()); // ici on dit qu'on écrit dans un objet de type Output
+
+
+        workbook.close();
+
     }
 
 }
