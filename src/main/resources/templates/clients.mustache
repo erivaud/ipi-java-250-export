@@ -1,16 +1,20 @@
 <table border="1">
     <thead>
     <tr>
+        <th>ID</th>
         <th>Nom</th>
         <th>Prénom</th>
+        <th>Date Naissance</th>
         <th>Ses factures</th>
     </tr>
     </thead>
     <tbody>
     {{#clients}} <!-- utiliser les données "clients" (on lui fait le lien ligne 26 de HomeController = modelAndView.addObject("clients", clients);) et ça fait comme une iteration sur tous les enregistrements de la base grâce au '#'-->
         <tr>
+            <td>{{id}}</td>
             <td>{{nom}}</td>
             <td>{{prenom}}</td>
+            <td>{{datenaissance}}</td>
             <td><a href="/clients/{{id}}/factures/xlsx">Télécharger toutes ses factures</a></td>
         </tr>
     {{/clients}}

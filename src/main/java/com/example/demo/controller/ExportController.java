@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -30,12 +32,19 @@ public class ExportController {
         response.setHeader("Content-Disposition", "attachment; filename=\"clients.csv\""); // là je lui dis qu'il va faire un fichier à télécharger et qu'il s'appelle clients.csv
         PrintWriter writer = response.getWriter(); // je récupère le writter de la réponse Http
         // TODO
+
+        writer.println("Matricule;Prénom; Nom; Date de naissance; Âge");
         List<Client> clients = clientService.findAllClients();
         ListIterator<Client> it = clients.listIterator();
+        LocalDate now = LocalDate.now();
         while (it.hasNext()){
             Client cl = it.next();
 
-        writer.println(cl.getId() + ";" +cl.getPrenom() + ";" + cl.getNom());
+        writer.println(cl.getId() + ";"
+                + cl.getPrenom() + ";"
+                + cl.getNom() + ";"
+                + cl.getDatenaissance().format(DateTimeFormatter.ofPattern("dd/MM/YYYY")) + ";"
+                + (now.getYear()-cl.getDatenaissance().getYear()));
         }
         // writer.println("Case00;Case01"); // écrit dans le fichier excel, les cases sont séparées par un ";"
        // writer.println("Case10;Case11");
