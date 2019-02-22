@@ -7,7 +7,7 @@
     </tr>
     </thead>
     <tbody>
-    {{#clients}}
+    {{#clients}} <!-- utiliser les données "clients" (on lui fait le lien ligne 26 de HomeController = modelAndView.addObject("clients", clients);) et ça fait comme une iteration sur tous les enregistrements de la base grâce au '#'-->
         <tr>
             <td>{{nom}}</td>
             <td>{{prenom}}</td>

@@ -32,19 +32,23 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<!-- pour faire les contrôleurs REST qui reçoivent les requêtes -->
 		</dependency>
 		<dependency>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-mustache</artifactId>
+			<!-- pour faire de l'interface web -->
 	</dependency>
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
+			<!-- pour faire de l'excel -->
 			<version>3.17</version>
 		</dependency>
 		<dependency>
 			<groupId>com.itextpdf</groupId>
 			<artifactId>itextpdf</artifactId>
+			<!-- pour faire du PDF -->
 			<version>5.0.6</version>
 		</dependency>
 		<dependency>
@@ -56,6 +60,7 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
+			<!-- si je mets h2 j'indique à spring qu'il va devoir faire une base de données en mémoire = une bdd virtuelle qui se reset à chaque démarrage -->
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

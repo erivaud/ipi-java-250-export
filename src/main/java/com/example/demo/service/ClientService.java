@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Service
+@Service // singleton : une seule instance du service utilisée pour tout usage de ClientService (appel dans HomeController au niveau du @Autowired) c'est bien le @Service qui instancie le singleton clientService
 @Transactional
 public class ClientService {
 

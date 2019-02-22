@@ -30,6 +30,9 @@ public class InitData implements ApplicationListener<ApplicationReadyEvent> {
 
         Client client2 = newClient("Dupont", "Jérome");
         em.persist(client2);
+
+        Client client3 = newClient("Rivaud", "Estelle");
+        em.persist(client3);
     }
 
     private Client newClient(String nom, String prenom) {

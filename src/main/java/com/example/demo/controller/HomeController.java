@@ -15,7 +15,7 @@ import java.util.List;
 @Controller
 public class HomeController {
 
-    @Autowired
+    @Autowired // on dit à Spring que pour faire ses appels à ClientService via ce singleton du ServiceClient
     private ClientService clientService;
 
     @GetMapping("/")
