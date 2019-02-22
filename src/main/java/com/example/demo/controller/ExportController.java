@@ -1,7 +1,10 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.Client;
+import com.example.demo.entity.Facture;
+import com.example.demo.entity.LigneFacture;
 import com.example.demo.service.ClientService;
+import com.example.demo.service.FactureService;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -21,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 
 /**
  * Controlleur pour réaliser les exports.
@@ -31,6 +35,9 @@ public class ExportController {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private FactureService factureService;
 
     @GetMapping("/clients/csv")
     public void clientsCSV(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -59,8 +66,6 @@ public class ExportController {
         LocalDate now = LocalDate.now();
         List<Client> clients = clientService.findAllClients();
 
-
-
         Workbook workbook = new XSSFWorkbook(); // crée un fichier excel
         Sheet sheet = workbook.createSheet("Clients"); // crée un onglet
         Row headerRow = sheet.createRow(0); // crée une ligne
@@ -88,13 +93,55 @@ public class ExportController {
             row.createCell(3).setCellValue(client.getDatenaissance().format(DateTimeFormatter.ofPattern("dd/MM/YYYY")));
             row.createCell(4).setCellValue((now.getYear()-client.getDatenaissance().getYear()));
         }
-
-
         workbook.write(response.getOutputStream()); // ici on dit qu'on écrit dans un objet de type Output
+        workbook.close(); // ici on dit qu'on ferme l'écriture dans le fichier
+
+    }
+    @GetMapping("/factures/xlsx")
+    public void facturesXlsx(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/vnd.ms-excel");
+        response.setHeader("Content-Disposition", "attachment; filename=\"factures.xlsx\"");
+
+        List<Facture> factures = factureService.findAllFacture();
+
+        Workbook workbook = new XSSFWorkbook();
+
+        for(Facture f : factures) {
+            Sheet sheet = workbook.createSheet("Facture "+ f.getId());
+            Row headerRow = sheet.createRow(0);
+
+            Cell cellHeaderId = headerRow.createCell(0);
+            cellHeaderId.setCellValue("Article");
+
+            headerRow.createCell(1).setCellValue("Qté");
+            headerRow.createCell(2).setCellValue("Prix Unit.");
+            headerRow.createCell(3).setCellValue("Prix Ligne");
+
+            Set<LigneFacture> lignesFacture = f.getLigneFactures();
+            int rowNum = 1;
 
 
+            for (LigneFacture lf : lignesFacture){
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(lf.getArticle().getLibelle());
+                row.createCell(1).setCellValue(lf.getQuantite());
+                row.createCell(2).setCellValue(lf.getArticle().getPrix());
+                row.createCell(3).setCellValue(lf.getArticle().getPrix()*lf.getQuantite());
+            }
+        }
+
+
+
+
+       // int i = 1;
+        //for (Client client : allClients) {
+        //   Row row = sheet.createRow(i);
+
+        // i++;
+        //}
+
+        workbook.write(response.getOutputStream());
         workbook.close();
 
     }
-
 }
