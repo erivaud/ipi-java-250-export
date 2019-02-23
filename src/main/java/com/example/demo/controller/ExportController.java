@@ -5,11 +5,9 @@ import com.example.demo.entity.Facture;
 import com.example.demo.entity.LigneFacture;
 import com.example.demo.service.ClientService;
 import com.example.demo.service.FactureService;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -118,9 +116,8 @@ public class ExportController {
             headerRow.createCell(3).setCellValue("Prix Ligne");
 
             Set<LigneFacture> lignesFacture = f.getLigneFactures();
+
             int rowNum = 1;
-
-
             for (LigneFacture lf : lignesFacture){
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(lf.getArticle().getLibelle());
@@ -128,17 +125,32 @@ public class ExportController {
                 row.createCell(2).setCellValue(lf.getArticle().getPrix());
                 row.createCell(3).setCellValue(lf.getArticle().getPrix()*lf.getQuantite());
             }
+            Font rowTotalFont = workbook.createFont();
+            rowTotalFont.setBold(true);
+            rowTotalFont.setColor(IndexedColors.BLUE_GREY.getIndex());
+
+            CellStyle rowTotalStyle = workbook.createCellStyle();
+            rowTotalStyle.setFont(rowTotalFont);
+
+            rowTotalStyle.setBorderBottom(BorderStyle.THIN);
+            rowTotalStyle.setBorderTop(BorderStyle.THIN);
+            rowTotalStyle.setBorderRight(BorderStyle.THIN);
+            rowTotalStyle.setBorderLeft(BorderStyle.THIN);
+
+            rowTotalStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+            rowTotalStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+            rowTotalStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+            rowTotalStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+
+
+            Row rowTotal = sheet.createRow(rowNum++);
+            rowTotal.createCell(0).setCellValue("Total facture :");
+            rowTotal.createCell(3).setCellValue(f.getTotal());
+
+            for (int i = 0; i < 4; i++) {
+                sheet.autoSizeColumn(i);
+            }
         }
-
-
-
-
-       // int i = 1;
-        //for (Client client : allClients) {
-        //   Row row = sheet.createRow(i);
-
-        // i++;
-        //}
 
         workbook.write(response.getOutputStream());
         workbook.close();
