@@ -125,22 +125,6 @@ public class ExportController {
                 row.createCell(2).setCellValue(lf.getArticle().getPrix());
                 row.createCell(3).setCellValue(lf.getArticle().getPrix()*lf.getQuantite());
             }
-            Font rowTotalFont = workbook.createFont();
-            rowTotalFont.setBold(true);
-            rowTotalFont.setColor(IndexedColors.BLUE_GREY.getIndex());
-
-            CellStyle rowTotalStyle = workbook.createCellStyle();
-            rowTotalStyle.setFont(rowTotalFont);
-
-            rowTotalStyle.setBorderBottom(BorderStyle.THIN);
-            rowTotalStyle.setBorderTop(BorderStyle.THIN);
-            rowTotalStyle.setBorderRight(BorderStyle.THIN);
-            rowTotalStyle.setBorderLeft(BorderStyle.THIN);
-
-            rowTotalStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
-            rowTotalStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
-            rowTotalStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
-            rowTotalStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
 
 
             Row rowTotal = sheet.createRow(rowNum++);
