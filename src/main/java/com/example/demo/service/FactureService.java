@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.Client;
 import com.example.demo.entity.Facture;
 import com.example.demo.repository.ClientRepository;
 import com.example.demo.repository.FactureRepository;
@@ -20,4 +19,5 @@ public class FactureService {
     public List<Facture> findAllFacture() {
         return factureRepository.findAll();
     }
+
 }

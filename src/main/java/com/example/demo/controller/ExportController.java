@@ -1,13 +1,15 @@
 package com.example.demo.controller;
 
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import com.example.demo.entity.Client;
 import com.example.demo.entity.Facture;
 import com.example.demo.entity.LigneFacture;
 import com.example.demo.service.ClientService;
 import com.example.demo.service.FactureService;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,10 +21,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Controlleur pour réaliser les exports.
@@ -95,49 +94,154 @@ public class ExportController {
         workbook.close(); // ici on dit qu'on ferme l'écriture dans le fichier
 
     }
+
+
     @GetMapping("/factures/xlsx")
     public void facturesXlsx(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/vnd.ms-excel");
         response.setHeader("Content-Disposition", "attachment; filename=\"factures.xlsx\"");
 
+        List<Client> clients = clientService.findAllClients();
         List<Facture> factures = factureService.findAllFacture();
 
         Workbook workbook = new XSSFWorkbook();
+        Map<String, CellStyle> styles = createStyles(workbook);
+        for (Client c : clients) {
+            Sheet sheetClient = workbook.createSheet( c.getPrenom() + " " + c.getNom());
+            Row rowClient = sheetClient.createRow(0);
+            rowClient.createCell(0).setCellValue(c.getPrenom() + " " + c.getNom());
+            rowClient.getCell(0).setCellStyle(styles.get("TotalHeader"));
+            sheetClient.autoSizeColumn(0);
 
-        for(Facture f : factures) {
-            Sheet sheet = workbook.createSheet("Facture "+ f.getId());
-            Row headerRow = sheet.createRow(0);
+            for (Facture f : factures) {
+                if(c.getId() == f.getClient().getId()) {
+                    Sheet sheet = workbook.createSheet("Facture " + f.getId());
 
-            Cell cellHeaderId = headerRow.createCell(0);
-            cellHeaderId.setCellValue("Article");
+                    Row headerRow = sheet.createRow(0);
+                    headerRow.setHeightInPoints(30);
 
-            headerRow.createCell(1).setCellValue("Qté");
-            headerRow.createCell(2).setCellValue("Prix Unit.");
-            headerRow.createCell(3).setCellValue("Prix Ligne");
+                    Cell cellHeaderId = headerRow.createCell(0);
+                    cellHeaderId.setCellValue("Article");
 
-            Set<LigneFacture> lignesFacture = f.getLigneFactures();
+                    headerRow.createCell(1).setCellValue("Qté");
+                    headerRow.createCell(2).setCellValue("Prix Unit.");
+                    headerRow.createCell(3).setCellValue("Prix Ligne");
 
-            int rowNum = 1;
-            for (LigneFacture lf : lignesFacture){
-                Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(lf.getArticle().getLibelle());
-                row.createCell(1).setCellValue(lf.getQuantite());
-                row.createCell(2).setCellValue(lf.getArticle().getPrix());
-                row.createCell(3).setCellValue(lf.getArticle().getPrix()*lf.getQuantite());
-            }
+                    Set<LigneFacture> lignesFacture = f.getLigneFactures();
+
+                    int rowNum = 1;
+                    for (LigneFacture lf : lignesFacture) {
+                        Row row = sheet.createRow(rowNum++);
+                        row.setHeightInPoints(30);
+                        row.createCell(0).setCellValue(lf.getArticle().getLibelle());
+                        row.createCell(1).setCellValue(lf.getQuantite());
+                        row.createCell(2).setCellValue(lf.getArticle().getPrix());
+                        row.createCell(3).setCellValue(lf.getArticle().getPrix() * lf.getQuantite());
+                        for (int i = 0; i < 4; i++) {
+                            row.getCell(i).setCellStyle(styles.get("Normal"));
+                        }
+                        row.getCell(1).setCellStyle(styles.get("Centered"));
+                    }
 
 
-            Row rowTotal = sheet.createRow(rowNum++);
-            rowTotal.createCell(0).setCellValue("Total facture :");
-            rowTotal.createCell(3).setCellValue(f.getTotal());
+                    Row totalRow = sheet.createRow(rowNum++);
+                    totalRow.setHeightInPoints(30);
+                    totalRow.createCell(0).setCellValue("Total facture :");
+                    totalRow.createCell(1);
+                    totalRow.createCell(2);
 
-            for (int i = 0; i < 4; i++) {
-                sheet.autoSizeColumn(i);
+                    CellRangeAddress cellRangeAddress = new CellRangeAddress(
+                            totalRow.getRowNum(), totalRow.getRowNum(),
+                            totalRow.getFirstCellNum(), (totalRow.getFirstCellNum() + 2));
+                    sheet.addMergedRegion(cellRangeAddress);
+                    totalRow.createCell(3).setCellValue(f.getTotal());
+
+
+                    for (int i = 0; i < 4; i++) {
+                        sheet.setColumnWidth(i, 350 * 15);
+
+                        headerRow.getCell(i).setCellStyle(styles.get("Header"));
+
+                        if (totalRow.getCell(i) != null & i < 3) {
+                            totalRow.getCell(i).setCellStyle(styles.get("TotalHeader"));
+                        } else if (totalRow.getCell(i) != null & i == 3) {
+                            totalRow.getCell(i).setCellStyle(styles.get("Total"));
+                        }
+
+                    }
+                }
             }
         }
-
         workbook.write(response.getOutputStream());
         workbook.close();
 
+
     }
+        /**
+         * Styling cells & columns starts here
+         */
+        private static Map<String, CellStyle> createStyles(Workbook workbook){
+
+            Map<String, CellStyle> styles = new HashMap<>();
+
+            CellStyle cellStyleNormal = workbook.createCellStyle();
+            Font fontNormal = workbook.createFont();
+            fontNormal.setFontHeightInPoints((short)13);
+            cellStyleNormal.setFont(fontNormal);
+            cellStyleNormal.setVerticalAlignment(VerticalAlignment.CENTER);
+            styles.put("Normal", cellStyleNormal);
+
+            CellStyle cellStyleCentered = workbook.createCellStyle();
+            cellStyleCentered.setAlignment(HorizontalAlignment.CENTER);
+            cellStyleCentered.setVerticalAlignment(VerticalAlignment.CENTER);
+            styles.put("Centered", cellStyleCentered);
+
+            CellStyle cellStyleHeader = workbook.createCellStyle();
+            Font fontHeader = workbook.createFont();
+            fontHeader.setFontHeightInPoints((short)18);
+            fontHeader.setBold(true);
+            fontHeader.setColor(IndexedColors.WHITE.getIndex());
+            cellStyleHeader.setFont(fontHeader);
+            cellStyleHeader.setAlignment(HorizontalAlignment.CENTER);
+            cellStyleHeader.setVerticalAlignment(VerticalAlignment.CENTER);
+            cellStyleHeader.setFillForegroundColor(IndexedColors.GREY_40_PERCENT.getIndex());
+            cellStyleHeader.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            styles.put("Header", cellStyleHeader);
+
+            CellStyle cellStyleTotal = workbook.createCellStyle();
+            Font fontTotal = workbook.createFont();
+            fontTotal.setFontHeightInPoints((short)20);
+            fontTotal.setBold(true);
+            fontTotal.setColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            cellStyleTotal.setFont(fontTotal);
+
+            cellStyleTotal.setTopBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            cellStyleTotal.setRightBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            cellStyleTotal.setBottomBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            cellStyleTotal.setLeftBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            cellStyleTotal.setBorderTop(BorderStyle.THIN);
+            cellStyleTotal.setBorderRight(BorderStyle.THIN);
+            cellStyleTotal.setBorderBottom(BorderStyle.THIN);
+            cellStyleTotal.setBorderLeft(BorderStyle.THIN);
+            cellStyleTotal.setAlignment(HorizontalAlignment.CENTER);
+            cellStyleTotal.setVerticalAlignment(VerticalAlignment.CENTER);
+
+            styles.put("Total", cellStyleTotal);
+
+            CellStyle cellStyleTotalH = workbook.createCellStyle();
+            Font fontTotalH = workbook.createFont();
+            fontTotalH.setFontHeightInPoints((short)20);
+            fontTotalH.setBold(true);
+            fontTotalH.setColor(IndexedColors.WHITE.getIndex());
+            cellStyleTotalH.setFont(fontTotalH);
+
+            cellStyleTotalH.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            cellStyleTotalH.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            styles.put("TotalHeader", cellStyleTotalH);
+
+            return styles;
+        }
+
 }
