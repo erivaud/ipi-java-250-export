@@ -102,7 +102,7 @@ public class ExportController {
         response.setHeader("Content-Disposition", "attachment; filename=\"factures.xlsx\"");
 
         List<Client> clients = clientService.findAllClients();
-        List<Facture> factures = factureService.findAllFacture();
+       // List<Facture> factures = factureService.findAllFacture();
 
         Workbook workbook = new XSSFWorkbook();
         Map<String, CellStyle> styles = createStyles(workbook);
@@ -112,9 +112,9 @@ public class ExportController {
             rowClient.createCell(0).setCellValue(c.getPrenom() + " " + c.getNom());
             rowClient.getCell(0).setCellStyle(styles.get("TotalHeader"));
             sheetClient.autoSizeColumn(0);
-
+             Set<Facture> factures = c.getFactures();
             for (Facture f : factures) {
-                if(c.getId() == f.getClient().getId()) {
+              //  if(c.getId() == f.getClient().getId()) {
                     Sheet sheet = workbook.createSheet("Facture " + f.getId());
 
                     Row headerRow = sheet.createRow(0);
@@ -169,7 +169,7 @@ public class ExportController {
                         }
 
                     }
-                }
+               // }
             }
         }
         workbook.write(response.getOutputStream());

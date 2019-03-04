@@ -3,6 +3,7 @@ package com.example.demo.entity;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * Created by Alexandre on 09/04/2018.
@@ -20,10 +21,13 @@ public class Client {
     @Column
     private String nom;
 
-
-
     @Column
     private LocalDate datenaissance;
+
+    @OneToMany(mappedBy = "client")
+    private Set<Facture> factures;
+
+
 
     public Long getId() {
         return id;
@@ -56,4 +60,13 @@ public class Client {
     public void setDatenaissance(LocalDate datenaissance) {
         this.datenaissance = datenaissance;
     }
+
+    public Set<Facture> getFactures() {
+        return factures;
+    }
+
+    public void setFactures(Set<Facture> factures) {
+        this.factures = factures;
+    }
+
 }
